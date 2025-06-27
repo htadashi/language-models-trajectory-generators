@@ -1,3 +1,5 @@
+import os
+import datetime
 import pybullet as p
 import numpy as np
 import pybullet_data
@@ -6,6 +8,25 @@ import config
 from robot import Robot
 from config import OK, PROGRESS, FAIL, ENDC
 from config import CAPTURE_IMAGES, ADD_BOUNDING_CUBES, ADD_TRAJECTORY_POINTS, EXECUTE_TRAJECTORY, OPEN_GRIPPER, CLOSE_GRIPPER, TASK_COMPLETED, RESET_ENVIRONMENT
+
+# Creating logfiles
+
+if not os.path.exists("logs"):
+    try:
+        os.makedirs("logs")
+    except OSError as e:
+        print(f"Erro ao criar o diretório logs': {e}")
+        exit()
+
+current_time = datetime.datetime.now()
+formatted_timestamp = current_time.strftime("%d.%m.%Y %H.%M.%S")
+
+file_name = f"trajetoria-robot-{formatted_timestamp.replace(' ', '-')}.txt"
+full_file_path = os.path.join("logs", file_name)
+
+with open(full_file_path, 'w') as file:
+    file.write("")
+print(f"Arquivo de log '{full_file_path}' criado com sucesso.")
 
 class Environment:
 
@@ -94,6 +115,10 @@ def run_simulation_environment(args, env_connection, logger):
             elif env_connection_received[0] == ADD_TRAJECTORY_POINTS:
 
                 trajectory = env_connection_received[1]
+                
+                with open(full_file_path, 'w') as file:
+                    for point in trajectory:
+                        file.write(f"{point[0]},{point[1]},{point[2]}\n")
 
                 trajectory_points = [point[:3] for point in trajectory]
                 p.addUserDebugPoints(trajectory_points, [[0, 1, 1]] * len(trajectory_points), pointSize=5, lifeTime=0)
