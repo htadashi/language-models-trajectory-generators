@@ -22,6 +22,12 @@ arm_movement_force_franka = 5 * 240
 gripper_movement_force_franka = 1000
 ee_index_franka = 11
 
+gripper_goal_position_open_ur3 = 0.2
+gripper_goal_position_closed_ur3 = 1.0
+arm_movement_force_ur3 = 5 * 240
+gripper_movement_force_ur3 = 1000
+ee_index_ur3 = 6
+
 robotiq_motor_joint = 1
 
 # Environment
@@ -31,9 +37,14 @@ joint_start_positions_sawyer = [-0.0304, -2.0563, -1.1631, -0.3829, 1.3152, 0.14
 base_start_position_franka = [0.0, 0.0, 0.0]
 base_start_orientation_e_franka = [0.0, 0.0, math.pi / 2]
 joint_start_positions_franka = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675, 0.0, 0.04, 0.04]
+base_start_position_ur3 = [0.0, 0.0, 0.0]
+base_start_orientation_e_ur3 = [0.0, 0.0, math.pi / 2]
+joint_start_positions_ur3 = [0, -math.pi/2, 0, -math.pi/2, 0, 0]
 
 ee_start_position = [0.0, 0.6, 0.55]
 ee_start_orientation_e = [0.0, math.pi, -math.pi / 2]
+ee_start_position_ur3 = [-0.174, 0.0, 0.694]
+ee_start_orientation_e_ur3 = [-math.pi/2, 0, math.pi/2]
 
 object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
 object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
@@ -60,6 +71,7 @@ point_cloud_top_surface_filter = 0.06
 bounding_cube_depth_offset = 0.06
 gripper_depth_offset_franka = 0.06
 gripper_depth_offset_sawyer = -0.12
+gripper_depth_offset_ur3 = -0.12
 
 # Segmentation
 segmentation_threshold = 0.2
