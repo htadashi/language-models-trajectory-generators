@@ -30,10 +30,10 @@ class Robot:
             self.base_start_position = config.base_start_position_ur3
             self.base_start_orientation_q = p.getQuaternionFromEuler(config.base_start_orientation_e_ur3)
             self.joint_start_positions = config.joint_start_positions_ur3
-            self.id = p.loadURDF("ur3_robot/ur3_description/urdf/ur3.urdf", self.base_start_position, self.base_start_orientation_q, useFixedBase=True)
+            self.id = p.loadURDF("ur3_description/ur_description/urdf/ur3.urdf", self.base_start_position, self.base_start_orientation_q, useFixedBase=True)
             self.robot = "ur3"
             self.ee_index = config.ee_index_ur3
-            self.gripper_id = p.loadURDF("robotiq_2f_85/robotiq_2f_85.urdf", config.ee_start_position, p.getQuaternionFromEuler(config.ee_start_orientation_e))
+            self.gripper_id = p.loadURDF("onrobot_description/urdf/onrobot_rg.urdf", config.ee_start_position, p.getQuaternionFromEuler(config.ee_start_orientation_e))
             self.gripper_motor = config.robotiq_motor_joint          
             p.createConstraint(self.id, self.ee_index, self.gripper_id, 0, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, 0]))  
 

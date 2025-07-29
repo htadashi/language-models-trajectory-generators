@@ -37,6 +37,7 @@ joint_start_positions_sawyer = [-0.0304, -2.0563, -1.1631, -0.3829, 1.3152, 0.14
 base_start_position_franka = [0.0, 0.0, 0.0]
 base_start_orientation_e_franka = [0.0, 0.0, math.pi / 2]
 joint_start_positions_franka = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675, 0.0, 0.04, 0.04]
+
 base_start_position_ur3 = [0.0, 0.0, 0.0]
 base_start_orientation_e_ur3 = [0.0, 0.0, math.pi / 2]
 joint_start_positions_ur3 = [0, -math.pi/2, 0, -math.pi/2, 0, 0]
