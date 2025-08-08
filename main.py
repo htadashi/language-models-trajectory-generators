@@ -88,7 +88,14 @@ if __name__ == "__main__":
 
     error = False
 
-    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(config.ee_start_position)).replace("[INSERT TASK]", command)
+    if args.robot == "sawyer":
+        ee_start_position_prompt = config.ee_start_position_sawyer
+    elif args.robot == "franka":
+        ee_start_position_prompt = config.ee_start_position_franka
+    elif args.robot == "ur3":
+        ee_start_position_prompt = config.ee_start_position_ur3
+
+    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(ee_start_position_prompt)).replace("[INSERT TASK]", command)
 
     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
     messages = models.get_chatgpt_output(client, args.language_model, new_prompt, messages, "system")
@@ -148,7 +155,7 @@ if __name__ == "__main__":
 
                     logger.info(PROGRESS + "RETRYING TASK..." + ENDC)
 
-                    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(config.ee_start_position)).replace("[INSERT TASK]", command)
+                    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(ee_start_position_prompt)).replace("[INSERT TASK]", command)
                     new_prompt += "\n"
                     new_prompt += TASK_FAILURE_PROMPT.replace("[INSERT TASK SUMMARY]", messages[-1]["content"])
 

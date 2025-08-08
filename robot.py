@@ -16,7 +16,7 @@ class Robot:
             self.id = p.loadURDF("sawyer_robot/sawyer_description/urdf/sawyer.urdf", self.base_start_position, self.base_start_orientation_q, useFixedBase=True)
             self.robot = "sawyer"
             self.ee_index = config.ee_index_sawyer
-            self.gripper_id = p.loadURDF("robotiq_2f_85/robotiq_2f_85.urdf", config.ee_start_position, p.getQuaternionFromEuler(config.ee_start_orientation_e))
+            self.gripper_id = p.loadURDF("robotiq_2f_85/robotiq_2f_85.urdf", config.ee_start_position_sawyer, p.getQuaternionFromEuler(config.ee_start_orientation_e_sawyer))
             self.gripper_motor = config.robotiq_motor_joint
             p.createConstraint(self.id, self.ee_index, self.gripper_id, 0, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, -0.07], childFrameOrientation=p.getQuaternionFromEuler([0, 0, 0]))
         elif args.robot == "franka":
@@ -37,14 +37,21 @@ class Robot:
             self.gripper_motor = config.robotiq_motor_joint          
             p.createConstraint(self.id, self.ee_index, self.gripper_id, 0, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, 0]))  
 
-        if args.robot == "sawyer" or args.robot == "franka":
-            self.ee_start_position = config.ee_start_position
-            self.ee_start_orientation_e = config.ee_start_orientation_e
+        if args.robot == "sawyer":
+            self.ee_start_position = config.ee_start_position_sawyer
+            self.ee_start_orientation_e = config.ee_start_orientation_e_sawyer
+            self.ee_current_position = config.ee_start_position_sawyer
+            self.ee_current_orientation_e = config.ee_start_orientation_e_sawyer
+        elif args.robot == "franka":
+            self.ee_start_position = config.ee_start_position_franka
+            self.ee_start_orientation_e = config.ee_start_orientation_e_franka
+            self.ee_current_position = config.ee_start_position_franka
+            self.ee_current_orientation_e = config.ee_start_orientation_e_franka
         elif args.robot == "ur3":
             self.ee_start_position = config.ee_start_position_ur3
             self.ee_start_orientation_e = config.ee_start_orientation_e_ur3
-        self.ee_current_position = config.ee_start_position
-        self.ee_current_orientation_e = config.ee_start_orientation_e
+            self.ee_current_position = config.ee_start_position_ur3
+            self.ee_current_orientation_e = config.ee_start_orientation_e_ur3            
         self.gripper_open = True
         self.trajectory_step = 1
 
