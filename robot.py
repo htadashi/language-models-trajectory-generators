@@ -33,6 +33,11 @@ class Robot:
             self.id = p.loadURDF("ur3_description/ur_description/urdf/ur3.urdf", self.base_start_position, self.base_start_orientation_q, useFixedBase=True)
             self.robot = "ur3"
             self.ee_index = config.ee_index_ur3
+            if args.mode == "debug":
+                ee_pos, ee_orn = p.getLinkState(self.id, self.ee_index)[:2]            
+                self.draw_frame(ee_pos, ee_orn, axis_length=0.1)
+                print(ee_pos)
+                print(p.getEulerFromQuaternion(ee_orn))  
             # OnRobot RG2 gripper model adapted from University of Osaka
             self.gripper_id = p.loadURDF("onrobot_rg_description/urdf/onrobot_rg2.urdf", config.ee_start_position_ur3, p.getQuaternionFromEuler(config.ee_start_orientation_e_ur3))            
             self.gripper_motor = config.onrobot_rg2_motor_joint          
@@ -65,6 +70,29 @@ class Robot:
                 i += 1
                 self.joint_indices.append(j)
 
+        # Print joint info for debugging
+        if args.mode == "debug":
+            joint_type_map = {
+                p.JOINT_REVOLUTE: "revolute",
+                p.JOINT_PRISMATIC: "prismatic",
+                p.JOINT_SPHERICAL: "spherical",
+                p.JOINT_PLANAR: "planar",
+                p.JOINT_FIXED: "fixed",
+            }
+            print("Robot joints:")
+            for i in range(p.getNumJoints(self.id)):
+                info = p.getJointInfo(self.id, i)
+                joint_name = info[1].decode("utf-8")
+                joint_type = joint_type_map.get(info[2], f"unknown({info[2]})")
+                print(f"Index {i}: Joint name = {joint_name}, Type = {joint_type}")
+
+            if args.robot == "sawyer" or args.robot == "ur3":
+                print("Gripper joints:")
+                for i in range(p.getNumJoints(self.gripper_id)):
+                    info = p.getJointInfo(self.gripper_id, i)
+                    joint_name = info[1].decode("utf-8")
+                    joint_type = joint_type_map.get(info[2], f"unknown({info[2]})")
+                    print(f"Index {i}: Joint name = {joint_name}, Type = {joint_type}")
 
 
     def move(self, env, ee_target_position, ee_target_orientation_e, gripper_open, is_trajectory):
@@ -235,3 +263,31 @@ class Robot:
             depth_image.convert("L").save(depth_image_path)
 
         return camera_position, camera_orientation_q
+
+    # Debug function to draw a coordinate frame at a given position and orientation
+    @staticmethod
+    def draw_frame(origin, orientation, axis_length=0.1, duration=0):
+        """
+        Draws a coordinate frame at a given position and orientation.
+
+        Parameters:
+            origin: [x, y, z] world position
+            orientation: [x, y, z, w] quaternion orientation
+            axis_length: length of each axis line
+            duration: how long the lines stay (0 = forever)
+        """
+
+        # Local unit vectors
+        x_axis = [axis_length, 0, 0]
+        y_axis = [0, axis_length, 0]
+        z_axis = [0, 0, axis_length]
+
+        # Transform them to world coordinates
+        x_world = p.multiplyTransforms(origin, orientation, x_axis, [0, 0, 0, 1])[0]
+        y_world = p.multiplyTransforms(origin, orientation, y_axis, [0, 0, 0, 1])[0]
+        z_world = p.multiplyTransforms(origin, orientation, z_axis, [0, 0, 0, 1])[0]
+
+        # Draw lines from origin to each axis tip
+        p.addUserDebugLine(origin, x_world, [1, 0, 0], lineWidth=2, lifeTime=duration)  # X - red
+        p.addUserDebugLine(origin, y_world, [0, 1, 0], lineWidth=2, lifeTime=duration)  # Y - green
+        p.addUserDebugLine(origin, z_world, [0, 0, 1], lineWidth=2, lifeTime=duration)  # Z - blue
