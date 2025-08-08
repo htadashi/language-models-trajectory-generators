@@ -26,8 +26,10 @@ gripper_goal_position_open_ur3 = -42
 gripper_goal_position_closed_ur3 = 44
 arm_movement_force_ur3 = 5 * 240
 gripper_movement_force_ur3 = 1000
-ee_index_ur3 = 6
+ee_index_ur3 = 8 # This is the end-effector joint (flange-tool0)
 
+# The motor joint of the gripper is the one that is controlled to open/close the gripper
+# In the URDF file this joint is usually associated with the <tranmission> tag
 robotiq_motor_joint = 1
 onrobot_rg2_motor_joint = 1 # For the University of Osaka model this corresponds to the finger_joint
 
