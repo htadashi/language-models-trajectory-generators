@@ -33,6 +33,11 @@ class Robot:
             self.id = p.loadURDF("ur3_description/ur_description/urdf/ur3.urdf", self.base_start_position, self.base_start_orientation_q, useFixedBase=True)
             self.robot = "ur3"
             self.ee_index = config.ee_index_ur3
+            # Reset UR3 to the starting joint configuration to guarantee that createConstraint works correctly
+            joint_configs = config.joint_start_positions_ur3 
+            joint_indices = [1, 2, 3, 4, 5 ,6] 
+            for i, joint_index in enumerate(joint_indices):
+                p.resetJointState(self.id, joint_index, joint_configs[i])
             if args.mode == "debug":
                 ee_pos, ee_orn = p.getLinkState(self.id, self.ee_index)[:2]            
                 self.draw_frame(ee_pos, ee_orn, axis_length=0.1)
@@ -60,7 +65,6 @@ class Robot:
             self.ee_current_orientation_e = config.ee_start_orientation_e_ur3            
         self.gripper_open = True
         self.trajectory_step = 1
-
         i = 0
         self.joint_indices = []
         for j in range(p.getNumJoints(self.id)):
@@ -117,7 +121,7 @@ class Robot:
             gripper_target_position = config.gripper_goal_position_open_ur3 if gripper_open else config.gripper_goal_position_closed_ur3
             if is_trajectory:
                 ee_target_position = list(ee_target_position)
-                ee_target_position[2] -= config.gripper_depth_offset_ur3
+                ee_target_position[2] -= config.gripper_depth_offset_ur3 # ajustar
 
         min_joint_positions = [p.getJointInfo(self.id, i)[8] for i in range(p.getNumJoints(self.id)) if p.getJointInfo(self.id, i)[2] == p.JOINT_PRISMATIC or p.getJointInfo(self.id, i)[2] == p.JOINT_REVOLUTE]
         max_joint_positions = [p.getJointInfo(self.id, i)[9] for i in range(p.getNumJoints(self.id)) if p.getJointInfo(self.id, i)[2] == p.JOINT_PRISMATIC or p.getJointInfo(self.id, i)[2] == p.JOINT_REVOLUTE]
