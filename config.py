@@ -22,13 +22,14 @@ arm_movement_force_franka = 5 * 240
 gripper_movement_force_franka = 1000
 ee_index_franka = 11
 
-gripper_goal_position_open_ur3 = 0.2
-gripper_goal_position_closed_ur3 = 1.0
+gripper_goal_position_open_ur3 = -42
+gripper_goal_position_closed_ur3 = 44
 arm_movement_force_ur3 = 5 * 240
 gripper_movement_force_ur3 = 1000
 ee_index_ur3 = 6
 
 robotiq_motor_joint = 1
+onrobot_rg2_motor_joint = 1 # For the University of Osaka model this corresponds to the finger_joint
 
 # Environment
 base_start_position_sawyer = [0.0, 0.0, 0.0]
@@ -74,7 +75,7 @@ point_cloud_top_surface_filter = 0.06
 bounding_cube_depth_offset = 0.06
 gripper_depth_offset_franka = 0.06
 gripper_depth_offset_sawyer = -0.12
-gripper_depth_offset_ur3 = -0.12
+gripper_depth_offset_ur3 = 0.174 # See https://onrobot.com/storage/datasheets/rg2.pdf
 
 # Segmentation
 segmentation_threshold = 0.2

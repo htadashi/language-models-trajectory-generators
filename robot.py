@@ -33,9 +33,10 @@ class Robot:
             self.id = p.loadURDF("ur3_description/ur_description/urdf/ur3.urdf", self.base_start_position, self.base_start_orientation_q, useFixedBase=True)
             self.robot = "ur3"
             self.ee_index = config.ee_index_ur3
-            self.gripper_id = p.loadURDF("onrobot_description/urdf/onrobot_rg.urdf", config.ee_start_position, p.getQuaternionFromEuler(config.ee_start_orientation_e))
-            self.gripper_motor = config.robotiq_motor_joint          
-            p.createConstraint(self.id, self.ee_index, self.gripper_id, 0, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, 0]))  
+            # OnRobot RG2 gripper model adapted from University of Osaka
+            self.gripper_id = p.loadURDF("onrobot_rg_description/urdf/onrobot_rg2.urdf", config.ee_start_position_ur3, p.getQuaternionFromEuler(config.ee_start_orientation_e_ur3))            
+            self.gripper_motor = config.onrobot_rg2_motor_joint          
+            p.createConstraint(self.id, self.ee_index, self.gripper_id, 0, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, math.pi/2]))  
 
         if args.robot == "sawyer":
             self.ee_start_position = config.ee_start_position_sawyer
@@ -134,12 +135,15 @@ class Robot:
                 p.setJointMotorControl2(self.id, gripper1_index, p.POSITION_CONTROL, targetPosition=gripper_target_position, force=config.gripper_movement_force_franka)
                 p.setJointMotorControl2(self.id, gripper2_index, p.POSITION_CONTROL, targetPosition=gripper_target_position, force=config.gripper_movement_force_franka)
             if self.robot == "ur3":
+                # Since the mimic joint tag is not supported in PyBullet, we need to set the joint positions manually
                 p.setJointMotorControlArray(self.id, self.joint_indices, p.POSITION_CONTROL, targetPositions=target_joint_positions, forces=[config.arm_movement_force_ur3] * 6)
-                current_joints = [p.getJointState(self.gripper_id, i)[0] for i in range(p.getNumJoints(self.gripper_id))]
-                joint_idx = [6, 3, 8, 5, 10]
-                target_joints = [current_joints[1], -current_joints[1], -current_joints[1], current_joints[1], current_joints[1]]
+                current_joints = [p.getJointState(self.gripper_id, i)[0] for i in range(p.getNumJoints(self.gripper_id))]                
+                # Indices [2, 3, 4, 5, 6] correspond to the revolute joints connected to the mimic joint
+                # The target positions are multiplied by 1 or -1 according to the multiplier attribute in the URDF
+                joint_idx = [2, 3, 4, 5, 6]
+                target_joints = [current_joints[1], -current_joints[1], -current_joints[1], current_joints[1], -current_joints[1]]
                 p.setJointMotorControlArray(self.gripper_id, joint_idx, p.POSITION_CONTROL, target_joints, positionGains=np.ones(5))
-                p.setJointMotorControl2(self.gripper_id, self.gripper_motor, p.POSITION_CONTROL, targetPosition=gripper_target_position, force=config.gripper_movement_force_ur3)
+                p.setJointMotorControl2(self.gripper_id, self.gripper_motor, p.POSITION_CONTROL, targetPosition=gripper_target_position, force=config.gripper_movement_force_ur3)                
 
             env.update()
             self.get_camera_image("head", env, save_camera_image=is_trajectory, rgb_image_path=config.rgb_image_trajectory_path.format(step=self.trajectory_step), depth_image_path=config.depth_image_trajectory_path.format(step=self.trajectory_step))
