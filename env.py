@@ -50,7 +50,7 @@ def run_simulation_environment(args, env_connection, logger):
 
     robot = Robot(args)
     robot.move(env, robot.ee_start_position, robot.ee_start_orientation_e, gripper_open=True, is_trajectory=False)
-
+    
     env_connection_message = OK + "Finished setting up environment!" + ENDC
     env_connection.send([env_connection_message])
 

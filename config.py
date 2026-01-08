@@ -22,7 +22,16 @@ arm_movement_force_franka = 5 * 240
 gripper_movement_force_franka = 1000
 ee_index_franka = 11
 
+gripper_goal_position_open_ur3 = -42
+gripper_goal_position_closed_ur3 = 44
+arm_movement_force_ur3 = 5 * 240
+gripper_movement_force_ur3 = 1000
+ee_index_ur3 = 8 # This is the end-effector joint (flange-tool0)
+
+# The motor joint of the gripper is the one that is controlled to open/close the gripper
+# In the URDF file this joint is usually associated with the <tranmission> tag
 robotiq_motor_joint = 1
+onrobot_rg2_motor_joint = 1 # For the University of Osaka model this corresponds to the finger_joint
 
 # Environment
 base_start_position_sawyer = [0.0, 0.0, 0.0]
@@ -32,10 +41,20 @@ base_start_position_franka = [0.0, 0.0, 0.0]
 base_start_orientation_e_franka = [0.0, 0.0, math.pi / 2]
 joint_start_positions_franka = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675, 0.0, 0.04, 0.04]
 
-ee_start_position = [0.0, 0.6, 0.55]
-ee_start_orientation_e = [0.0, math.pi, -math.pi / 2]
+base_start_position_ur3 = [0.0, 0.0, 0.0]
+base_start_orientation_e_ur3 = [0.0, 0.0, math.pi / 2]
+joint_start_positions_ur3 = [-math.pi, -math.pi/2, -math.pi/2, -math.pi/2, math.pi/2, math.radians(358.22)]
 
-object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
+ee_start_position_sawyer = [0.0, 0.6, 0.55]
+ee_start_orientation_e_sawyer = [0.0, math.pi, -math.pi / 2]
+ee_start_position_franka = [0.0, 0.6, 0.55]
+ee_start_orientation_e_franka = [0.0, math.pi, -math.pi / 2]
+ee_start_position_ur3 = [0.11235000001566998, 0.2985999999832018, 0.3136499999769568]
+ee_start_orientation_e_ur3 = [3.14159265339116, 2.1137534847394844e-10, 0.031066860890601226]
+
+#object_start_position = [0.05, 0.75, 0.1] #sawyer
+object_start_position = [0.05, 0.75, 0.1] #franka
+#object_start_position = [0.1, 0.45, 0.1] #ur3
 object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
 
 global_scaling = 0.08
@@ -60,6 +79,7 @@ point_cloud_top_surface_filter = 0.06
 bounding_cube_depth_offset = 0.06
 gripper_depth_offset_franka = 0.06
 gripper_depth_offset_sawyer = -0.12
+gripper_depth_offset_ur3 = -0.174 # See https://onrobot.com/storage/datasheets/rg2.pdf
 
 # Segmentation
 segmentation_threshold = 0.2
