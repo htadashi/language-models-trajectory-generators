@@ -12,6 +12,7 @@ class Environment:
     def __init__(self, args):
 
         self.mode = args.mode
+        self.state_id = None
 
     def load(self):
 
@@ -19,7 +20,9 @@ class Environment:
 
         object_start_position = config.object_start_position
         object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
-        object_model = p.loadURDF("ycb_assets/002_master_chef_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        #object_model = p.loadURDF("ycb_assets/002_master_chef_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        object_model = p.loadURDF("ycb_assets/006_mustard_bottle.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        #object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
         if self.mode == "default":
 
@@ -50,7 +53,9 @@ def run_simulation_environment(args, env_connection, logger):
 
     robot = Robot(args)
     robot.move(env, robot.ee_start_position, robot.ee_start_orientation_e, gripper_open=True, is_trajectory=False)
-    
+
+    env.state_id = p.saveState()
+
     env_connection_message = OK + "Finished setting up environment!" + ENDC
     env_connection.send([env_connection_message])
 
@@ -147,6 +152,8 @@ def run_simulation_environment(args, env_connection, logger):
                 robot.gripper_open = True
                 robot.trajectory_step = 1
 
+                p.restoreState(env.state_id)
+                
                 for _ in range(100):
                     env.update()
 
