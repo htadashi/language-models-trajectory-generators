@@ -1,12 +1,22 @@
+import textwrap
+from xmlrpc import client
 import numpy as np
 import sys
 import torch
 import math
 import config
+
+from google import genai
+from google.genai import types
+from gemini_model import parse_json
+
+import os
+import json
 import models
 import utils
+from gemini_model import get_gemini_output, call_gemini_robotics_er
 from PIL import Image
-from prompts.success_detection_prompt import SUCCESS_DETECTION_PROMPT
+#from prompts.success_detection_prompt import SUCCESS_DETECTION_PROMPT
 from config import OK, PROGRESS, FAIL, ENDC
 from config import CAPTURE_IMAGES, ADD_BOUNDING_CUBES, ADD_TRAJECTORY_POINTS, EXECUTE_TRAJECTORY, OPEN_GRIPPER, CLOSE_GRIPPER, TASK_COMPLETED, RESET_ENVIRONMENT
 
@@ -58,11 +68,15 @@ class API:
         segmentation_texts = [segmentation_text]
 
         self.logger.info(PROGRESS + "Segmenting head camera image..." + ENDC)
-        model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
+        #model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
+        model_predictions, segmentation_texts = get_gemini_output(rgb_image_head, segmentation_texts)
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
-        masks = utils.get_segmentation_mask(model_predictions, config.segmentation_threshold)
-
+        #masks = utils.get_segmentation_mask(model_predictions, config.segmentation_threshold)
+        masks = []
+        for model_prediction in model_predictions:            
+            masks.append(model_prediction)
+        
         bounding_cubes_world_coordinates, bounding_cubes_orientations = utils.get_bounding_cube_from_point_cloud(rgb_image_head, masks, depth_array, self.head_camera_position, self.head_camera_orientation_q, self.segmentation_count)
 
         utils.save_xmem_image(masks)
@@ -128,6 +142,10 @@ class API:
 
     def task_completed(self):
 
+        #google_api_key = os.getenv("GOOGLE_API_KEY")
+        #client = genai.Client(api_key=google_api_key)
+        #MODEL_ID = "gemini-robotics-er-1.5-preview"
+
         if self.attempted_task:
 
             self.completed_task = True
@@ -139,92 +157,72 @@ class API:
             [env_connection_message] = self.main_connection.recv()
             self.logger.info(env_connection_message)
 
-            self.logger.info(PROGRESS + "Generating XMem output..." + ENDC)
-            masks = models.get_xmem_output(self.xmem_model, self.device, self.trajectory_length)
-            self.logger.info(OK + "Finished generating XMem output!" + ENDC)
+            step = 0
+            arquivos_imagens = []
+            while True:
+                arq = config.rgb_image_trajectory_path.format(step=step)
+                if not os.path.exists(arq):
+                    break
+                try:
+                    arquivo = Image.open(arq)
+                    arquivos_imagens.append(arquivo)
 
-            num_objects = len(np.unique(masks[0])) - 1
+                except Exception as e:
+                    print(f"Erro ao ler: {e}")
+                step += 30
+            
+            #print(f"Encontradas {len(arquivos_imagens)} imagens.")
 
-            new_prompt = SUCCESS_DETECTION_PROMPT.replace("[INSERT TASK]", self.command)
-            new_prompt += "\n"
+            prompt = textwrap.dedent("""\
+                In this sequence of images, the robotic arm's task was: %s.
+                Respond in the following JSON format whether the task was completed or not:
+                {
+                    {
+                        "task_completed": boolean,
+                        "reasoning": "short string explaining the reasoning",
+                        "final_state_object": "description of the final state of the main object"
+                    }
+                }
+            """ % self.command)
+            try:
+                #image_response = client.models.generate_content(
+                   # model=MODEL_ID,
+                   # contents=[arquivos_imagens, prompt],
+                    #config=types.GenerateContentConfig(
+                     #   temperature=0.5,
+                      #  thinking_config=types.ThinkingConfig(thinking_budget=0),
+                    #),
+               # )
+                json_output = call_gemini_robotics_er(arquivos_imagens, prompt)
+                result = json.loads(json_output)
+                #print(result)
 
-            self.logger.info(PROGRESS + "Calculating object bounding cubes..." + ENDC)
+                #self.logger.info(f"Gemini Analysis: {result['reasoning']}")
+                if result["task_completed"]:
+                    self.completed_task = True 
+                    self.logger.info(OK + "Gemini verified: TASK SUCCESS!" + ENDC)
+                else:
 
-            for object in range(1, num_objects + 1):
+                    self.logger.info(FAIL + "Gemini verified: TASK FAILED." + ENDC)
+                    self.task_failed()
 
-                object_positions = []
-                object_orientations = []
-
-                idx_offset = 0
-
-                for i, mask in enumerate(masks):
-
-                    rgb_image = Image.open(config.rgb_image_trajectory_path.format(step=i * config.xmem_output_every)).convert("RGB")
-                    depth_image = Image.open(config.depth_image_trajectory_path.format(step=i * config.xmem_output_every)).convert("L")
-                    depth_array = np.array(depth_image) / 255.
-
-                    object_mask = mask.copy()
-                    object_mask[object_mask != object] = False
-                    object_mask[object_mask == object] = True
-                    object_mask = torch.Tensor(object_mask)
-
-                    bounding_cubes, orientations = utils.get_bounding_cube_from_point_cloud(rgb_image, [object_mask], depth_array, self.head_camera_position, self.head_camera_orientation_q, object - 1)
-
-                    if len(bounding_cubes) == 0:
-
-                        self.logger.info("No bounding cube found: removed.")
-                        idx_offset += 1
-
-                    else:
-
-                        [bounding_cube] = bounding_cubes
-                        [orientation] = orientations
-                        position = bounding_cube[4]
-                        orientation = orientation[0]
-                        orientation = np.mod(orientation + math.pi, 2 * math.pi) - math.pi
-
-                        object_positions.append(position)
-
-                        if i == 0:
-
-                            object_orientations.append(orientation)
-
-                        else:
-
-                            previous_orientation = object_orientations[i - 1 - idx_offset]
-                            possible_orientations = np.array([np.mod(orientation + i * math.pi / 2 + math.pi, 2 * math.pi) - math.pi for i in range(4)])
-                            circular_difference = np.minimum(np.abs(possible_orientations - previous_orientation), 2 * math.pi - np.abs(possible_orientations - previous_orientation))
-                            min_index = np.argmin(circular_difference)
-                            orientation = possible_orientations[min_index]
-                            object_orientations.append(orientation)
-
-                new_prompt += self.segmentation_texts[object - 1] + " trajectory positions and orientations:\n"
-                new_prompt += "Positions:\n"
-                new_prompt += str(np.around([position for p, position in enumerate(object_positions) if p % config.xmem_lm_input_every == 0], 3)) + "\n"
-                new_prompt += "Orientations:\n"
-                new_prompt += str(np.around([orientation for o, orientation in enumerate(object_orientations) if o % config.xmem_lm_input_every == 0], 3)) + "\n"
-                new_prompt += "\n"
-
-            self.logger.info(OK + "Finished calculating object bounding cubes!" + ENDC)
-
+            except Exception as e:
+                self.logger.error(f"Error calling Gemini: {e}")
+                self.task_failed()
+            
             self.attempted_task = True
 
-            messages = []
 
-            self.logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
-            messages = models.get_chatgpt_output(self.client, self.args.language_model, new_prompt, messages, "system", file=sys.stderr)
-            self.logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
+            #self.logger.info(PROGRESS + "Generating XMem output..." + ENDC)
+            #masks = models.get_xmem_output(self.xmem_model, self.device, self.trajectory_length)
 
-            code_block = messages[-1]["content"].split("```python")
+            #new_prompt = SUCCESS_DETECTION_PROMPT.replace("[INSERT TASK]", self.command)
+            #new_prompt += "\n"
+
+            #self.logger.info(OK + "Finished calculating object bounding cubes!" + ENDC)
 
             task_completed = self.task_completed
             task_failed = self.task_failed
-
-            for block in code_block:
-                if len(block.split("```")) > 1:
-                    code = block.split("```")[0]
-                    exec(code)
-
 
 
     def task_failed(self):

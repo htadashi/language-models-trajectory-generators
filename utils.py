@@ -82,6 +82,7 @@ def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_positio
 
     for i, mask in enumerate(masks):
 
+        mask = mask.float() # check if this is necessary
         save_image(mask, config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i))
         mask_np = cv.imread(config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i), cv.IMREAD_GRAYSCALE)
 

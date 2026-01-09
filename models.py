@@ -42,7 +42,6 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     return masks, boxes, phrases
 
 
-
 def get_chatgpt_output(client, model, new_prompt, messages, role, file=sys.stdout):
 
     print(role + ":", file=file)
@@ -51,7 +50,7 @@ def get_chatgpt_output(client, model, new_prompt, messages, role, file=sys.stdou
 
     completion = client.chat.completions.create(
         model=model,
-        temperature=0,
+        temperature=1,
         messages=messages,
         stream=True
     )
