@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # Parse args
     parser = argparse.ArgumentParser(description="Main Program.")
     parser.add_argument("-lm", "--language_model", choices=["gpt-5","gpt-4.1","gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"], default="gpt-4o", help="select language model")
-    parser.add_argument("-r", "--robot", choices=["sawyer", "franka", "ur3"], default="sawyer", help="select robot")
+    parser.add_argument("-r", "--robot", choices=["sawyer", "franka", "ur3"], default="ur3", help="select robot")
     parser.add_argument("-m", "--mode", choices=["default", "debug"], default="default", help="select mode to run")
     args = parser.parse_args()
 
@@ -64,11 +64,11 @@ if __name__ == "__main__":
     main_connection, env_connection = Pipe()
     api = API(args, main_connection, logger, client, langsam_model, xmem_model, device)
 
-    detect_object = api.detect_object
+    detect_object = api.detect_object_sam
     execute_trajectory = api.execute_trajectory
     open_gripper = api.open_gripper
     close_gripper = api.close_gripper
-    task_completed = api.task_completed
+    task_completed = api.task_completed_xmem
 
     # Start process
     env_process = Process(target=run_simulation_environment, name="EnvProcess", args=[args, env_connection, logger])
