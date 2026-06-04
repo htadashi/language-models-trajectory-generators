@@ -1,19 +1,12 @@
-Cython==3.0.6
-gdown==4.7.1
-GitPython==3.1.40
-hickle==5.0.2
+--extra-index-url https://download.pytorch.org/whl/cpu
+Pillow==10.1.0
+opencv-python==4.8.1.78
+google-genai==1.56.0
+lang-sam @ git+https://github.com/luca-medeiros/lang-segment-anything.git@918043ed4666eea04da88aa179eb8d27ef4b1a1d
 matplotlib==3.8.2
 numpy==1.26.2
 openai==1.66.3
-opencv_python==4.8.1.78
-Pillow==10.1.0
-progressbar33==2.4
 pybullet==3.2.6
-PySide6==6.5.2
-scipy==1.11.4
 shapely==2.0.2
-torch==2.1.1
-torchvision==0.16.1
-tqdm==4.66.1
-google-auth==2.45.0
-google-genai==1.56.0
+torch==2.12.0+cpu
+torchvision==0.27.0+cpu

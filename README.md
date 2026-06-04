@@ -50,52 +50,11 @@ This repository also contains the [full prompts](https://github.com/kwonathan/la
 The following commands will install everything required to run the full system in the PyBullet simulation environment. If you would like more information on each command, please refer to the [Step-By-Step Installation Guide](#step-by-step-installation-guide).
 
 ```
-git clone --recurse-submodules https://github.com/kwonathan/language-models-trajectory-generators.git;
+git clone --recurse-submodules https://github.com/htadashi/language-models-trajectory-generators.git;
 cd language-models-trajectory-generators;
 pip install -r requirements.txt;
-pip install -U git+https://github.com/luca-medeiros/lang-segment-anything.git;
 mkdir XMem/saves;
 mkdir -p images/trajectory;
-wget -P XMem/saves https://github.com/hkchengrex/XMem/releases/download/v1.0/XMem.pth
-```
-
-### Step-By-Step Installation Guide
-
-First, clone the repository with the `--recurse-submodules` flag to initialise the XMem submodule:
-```
-git clone --recurse-submodules https://github.com/kwonathan/language-models-trajectory-generators.git
-```
-The XMem object tracking model will be used at the end of each task execution for success detection, by obtaining the poses of the relevant objects over the duration of the task execution and providing them to the LLM to determine whether the task was completed successfully or not.
-
-Once the repository has been cloned, navigate to the project directory:
-```
-cd language-models-trajectory-generators
-```
-
-Next, we need to install the required packages:
-```
-pip install -r requirements.txt
-```
-
-Then, we need to install the LangSAM model:
-```
-pip install -U git+https://github.com/luca-medeiros/lang-segment-anything.git
-```
-[LangSAM](https://github.com/luca-medeiros/lang-segment-anything) is a language-conditioned object segmentation model based on [Grounding DINO](https://github.com/IDEA-Research/GroundingDINO) and [Segment Anything](https://github.com/facebookresearch/segment-anything). It will be used to detect and segment objects to obtain bounding boxes and provide object poses to the LLM. Note that this is all performed automatically, and no human intervention is required.
-
-Several directories also need to be created. First, create the `XMem/saves` directory for the XMem model:
-```
-mkdir XMem/saves
-```
-
-Then, create the `images` and `images/trajectory` directories:
-```
-mkdir -p images/trajectory
-```
-The images generated from running the system will be saved in these directories.
-
-Finally, download the XMem model into the `XMem/saves` directory:
-```
 wget -P XMem/saves https://github.com/hkchengrex/XMem/releases/download/v1.0/XMem.pth
 ```
 
