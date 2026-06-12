@@ -170,41 +170,66 @@ def parse_masks_to_tensor(json_output, img_height, img_width):
         #return torch.zeros((0, img_height, img_width), dtype=torch.uint8)
 
 
-def get_gemini_output(image, segmentation_texts):
+def get_gemini_output(image, segmentation_texts, camera):
     phrases = segmentation_texts
     segmentation_texts = ", ".join(segmentation_texts) #queries
     width, height = image.size
+    if camera == "head":
 
-    prompt = textwrap.dedent("""\
-    Provide the segmentation masks for the following objects in this image: %s.
+        prompt = textwrap.dedent("""\
+        Provide the segmentation masks for the following objects in this image: %s.
+        
+        The mask should be a base64 encoded PNG image where non-zero pixels indicate 
+        the mask and background pixels must be 0.""" % segmentation_texts)
 
-    The answer should follow the JSON format:
-    [
-      {
-        "box_2d": "[ymin, xmin, ymax, xmax]",
-        "label": "<label for the object>",
-        "mask": "data:image/png;base64,<base64 encoded PNG mask>"
-      },
-      ...
-    ]
+    elif camera == "wrist":
+        # Provide the segmentation masks for the orange and gray bottle cap in this image:
 
-    The box_2d coordinates should be normalized to 0-1000 and must be integers.
-    The mask should be a base64 encoded PNG image where non-zero pixels indicate
-    the mask.""" % segmentation_texts)
+        prompt = textwrap.dedent("""\
+            Describe the geometry and the color of the object, in a single word each, seen in the center of this image:
+            The answer should follow the JSON format:
+            [
+            {
+                "geometry": "<geometry of the object>",
+                "color": "<color of the object>"
+            },
+            ...
+            ]""")
+
+        start_time = time.time()
+        settings=types.GenerateContentConfig(temperature=0.5)
+        print("Raw Model Response Text:")
+
+        json_output = call_gemini_robotics_er([image], prompt, settings)
+        data = json.loads(json_output)
+
+        geometry = data[0]["geometry"]
+        color = data[0]["color"]
+
+        print(geometry, color)
+
+        queries = [f"geometry={geometry}", f"color={color}"]
+        query_text = ", ".join(queries)
+
+        prompt = textwrap.dedent("""\
+            Provide the segmentation mask for the object with the following descriptions in this image: %s
+
+            The mask should be a base64 encoded PNG image where non-zero pixels indicate
+            the mask and background pixels must be 0.""") % query_text
 
     start_time = time.time()
     settings=types.GenerateContentConfig(temperature=0.5)
     print("Raw Model Response Text:")
-
+    
     try:
         json_output = call_gemini_robotics_er([image], prompt, settings)
 
     except Exception as e:
         print(f"Gemini Error: {e}")
-    
+
     else:
         print(f"\nTotal processing time: {(time.time() - start_time):.4f} seconds")
-    
+
         try:
             mask_tensor = parse_masks_to_tensor(
                 json_output, height, width
@@ -230,20 +255,20 @@ def get_gemini_output(image, segmentation_texts):
         except Exception as e:
             print(f"An error occurred: {e}")
 
-    try:
-        segmentation_masks = parse_segmentation_masks(
-            json_output, height, width
-        )
-        print(f"Successfully parsed {len(segmentation_masks)} segmentation masks.")
+        try:
+            segmentation_masks = parse_segmentation_masks(
+                json_output, height, width
+            )
+            print(f"Successfully parsed {len(segmentation_masks)} segmentation masks.")
 
-        #annotated_img = plot_segmentation_masks(
-        #    image.convert("RGBA"), segmentation_masks
-        #)
-        #display.display(annotated_img)
+            #annotated_img = plot_segmentation_masks(
+            #    image.convert("RGBA"), segmentation_masks
+            #)
+            #display.display(annotated_img)
 
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON response: {e}")
-    except Exception as e:
-        print(f"An error occurred during mask processing or plotting: {e}")
-        masks = mask_tensor
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON response: {e}")
+        except Exception as e:
+            print(f"An error occurred during mask processing or plotting: {e}")
+            masks = mask_tensor
     return masks, phrases

@@ -19,10 +19,15 @@ class Environment:
         p.resetDebugVisualizerCamera(config.camera_distance, config.camera_yaw, config.camera_pitch, config.camera_target_position)
 
         object_start_position = config.object_start_position
+        table_start_position = config.table_start_position
         object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
-        #object_model = p.loadURDF("ycb_assets/002_master_chef_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
-        object_model = p.loadURDF("ycb_assets/006_mustard_bottle.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
-        #object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        table_start_orientation_q = p.getQuaternionFromEuler(config.table_start_orientation_e)
+        object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+
+        # object_model = p.loadURDF("ycb_assets/002_master_chef_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        object_model = p.loadURDF("ycb_assets/007_mesa.urdf", table_start_position, table_start_orientation_q, useFixedBase=True)
+        # object_model = p.loadURDF("ycb_assets/006_mustard_bottle.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
         if self.mode == "default":
 

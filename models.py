@@ -12,7 +12,7 @@ sys.path.append("./XMem/")
 from XMem.inference.inference_core import InferenceCore
 from XMem.inference.interact.interactive_utils import image_to_torch, index_numpy_to_one_hot_torch, torch_prob_to_numpy_mask, overlay_davis
 
-def get_langsam_output(image, model, segmentation_texts, segmentation_count):
+def get_langsam_output(image, model, segmentation_texts, segmentation_count, camera):
     """
     Updated to handle new LangSAM output format:
     model.predict([image], [text_prompt]) → list of result dicts.

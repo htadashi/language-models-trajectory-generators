@@ -100,6 +100,10 @@
     <material>Gazebo/White</material>
   </gazebo> -->
   <link name="left_inner_finger">
+      <contact>
+       <friction_anchor/>
+      <lateral_friction value="0.8"/>
+    </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       <mass value="0.05"/>
@@ -182,6 +186,10 @@
     <material>Gazebo/White</material>
   </gazebo> -->
   <link name="right_inner_finger">
+      <contact>
+      <friction_anchor/>
+      <lateral_friction value="0.8"/>
+    </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       <mass value="0.05"/>

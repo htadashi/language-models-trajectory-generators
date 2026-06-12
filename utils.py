@@ -73,30 +73,43 @@ def save_xmem_image(masks):
 
 
 
-def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_position, camera_orientation_q, segmentation_count):
+def get_bounding_cube_from_point_cloud(image_head, image_wrist, masks, head_masks, wrist_masks, depth_array_h, depth_array_w, head_camera_position, head_camera_orientation_q, wrist_camera_position, wrist_camera_orientation_q, segmentation_count):
 
-    image_width, image_height = image.size
-
+    image_width_head, image_height_head = image_head.size
+    image_width_wrist, image_height_wrist = image_wrist.size
     bounding_cubes = []
     bounding_cubes_orientations = []
 
-    for i, mask in enumerate(masks):
+    for i in range (masks):
 
-        mask = mask.float() # check if this is necessary
-        save_image(mask, config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i))
-        mask_np = cv.imread(config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i), cv.IMREAD_GRAYSCALE)
+        head_mask = head_masks[i].float()   # check if this is necessary
+        wrist_mask = wrist_masks[i].float() # check if this is necessary
 
-        contour = get_max_contour(mask_np, image_width, image_height)
+        save_image(head_mask, config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i))
+        head_mask_np = cv.imread(config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i), cv.IMREAD_GRAYSCALE)
+        save_image(wrist_mask, config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=masks + i))
+        wrist_mask_np = cv.imread(config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=masks + i), cv.IMREAD_GRAYSCALE)
 
-        if contour is not None:
+        contour_h = get_max_contour(head_mask_np, image_width_head, image_height_head)
+        contour_w = get_max_contour(wrist_mask_np, image_width_wrist, image_height_wrist)
 
-            contour_pixel_points = [(c, r, depth_array[r][c]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (c, r), measureDist=False) == 1]
-            contour_world_points = [get_world_point_world_frame(camera_position, camera_orientation_q, "head", image, pixel_point) for pixel_point in contour_pixel_points]
+        if contour_h is not None and contour_w is not None:
+
+            contour_pixel_points_h = [(c, r, depth_array_h[r][c]) for r in range(image_height_head) for c in range(image_width_head) if cv.pointPolygonTest(contour_h, (c, r), measureDist=False) >= 0]
+            contour_pixel_points_w = [(c, r, depth_array_w[r][c]) for r in range(image_height_wrist) for c in range(image_width_wrist) if cv.pointPolygonTest(contour_w, (c, r), measureDist=False) >= 0]
+            contour_world_points_h = [get_world_point_world_frame(head_camera_position, head_camera_orientation_q, "head", image_head, pixel_point) for pixel_point in contour_pixel_points_h]
+            contour_world_points_w = [get_world_point_world_frame(wrist_camera_position, wrist_camera_orientation_q, "wrist", image_wrist, pixel_point) for pixel_point in contour_pixel_points_w]
+        
+            contour_world_points = contour_world_points_h
+
             max_z_coordinate = np.max(np.array(contour_world_points)[:, 2])
             min_z_coordinate = np.min(np.array(contour_world_points)[:, 2])
-            top_surface_world_points = [world_point for world_point in contour_world_points if world_point[2] > max_z_coordinate - config.point_cloud_top_surface_filter]
+            top_surface_world_points = contour_world_points_w #apenas os pontos da camera de cima.
+            
+            # top_surface_world_points = [world_point for world_point in contour_world_points if world_point[2] > max_z_coordinate - config.point_cloud_top_surface_filter]
 
-            rect = MultiPoint([world_point[:2] for world_point in top_surface_world_points]).minimum_rotated_rectangle
+            rect = MultiPoint([top_point[:2] for top_point in top_surface_world_points]).minimum_rotated_rectangle
+    
             if isinstance(rect, Polygon):
                 rect = polygon.orient(rect, sign=-1)
                 box = rect.exterior.coords
@@ -104,6 +117,7 @@ def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_positio
                 box_min_x = np.argmin(box[:, 0])
                 box = np.roll(box, -box_min_x, axis=0)
                 box_top = [list(point) + [max_z_coordinate] for point in box]
+                # box_btm = [list(point) + [0.71] for point in box]
                 box_btm = [list(point) + [min_z_coordinate] for point in box]
                 box_top.append(list(np.mean(box_top, axis=0)))
                 box_btm.append(list(np.mean(box_btm, axis=0)))
@@ -111,13 +125,13 @@ def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_positio
 
                 # Calculating rotation in world frame
                 bounding_cubes_orientation_width = np.arctan2(box[1][1] - box[0][1], box[1][0] - box[0][0])
+                #imprimir os valores e desenhar frames
                 bounding_cubes_orientation_length = np.arctan2(box[2][1] - box[1][1], box[2][0] - box[1][0])
                 bounding_cubes_orientations.append([bounding_cubes_orientation_width, bounding_cubes_orientation_length])
 
     bounding_cubes = np.array(bounding_cubes)
 
     return bounding_cubes, bounding_cubes_orientations
-
 
 
 def get_world_point_world_frame(camera_position, camera_orientation_q, camera, image, point):
@@ -129,9 +143,14 @@ def get_world_point_world_frame(camera_position, camera_orientation_q, camera, i
     pixel_point = np.array([[point[0] - (image_width / 2)], [(image_height / 2) - point[1]], [1.0]])
 
     if camera == "wrist":
-        pixel_point = [pixel_point[1], pixel_point[0], pixel_point[2]]
-    elif camera == "head":
+        # pixel_point = [-pixel_point[1], -pixel_point[0], pixel_point[2]]
+        # pixel_point = [pixel_point[1], -pixel_point[0], pixel_point[2]]
         pixel_point = [-pixel_point[1], -pixel_point[0], pixel_point[2]]
+
+    elif camera == "head":
+        # pixel_point = [-pixel_point[1], -pixel_point[0], pixel_point[2]]
+        pixel_point = [-pixel_point[1], pixel_point[0], pixel_point[2]]
+
 
     world_point_camera_frame = (np.linalg.inv(K) @ pixel_point) * point[2]
     world_point_world_frame = Rt @ np.vstack((world_point_camera_frame, np.array([1.0])))

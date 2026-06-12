@@ -37,11 +37,12 @@ onrobot_rg2_motor_joint = 1 # For the University of Osaka model this corresponds
 base_start_position_sawyer = [0.0, 0.0, 0.0]
 base_start_orientation_e_sawyer = [0.0, 0.0, math.pi / 2]
 joint_start_positions_sawyer = [-0.0304, -2.0563, -1.1631, -0.3829, 1.3152, 0.1496, 1.4462, -0.2288]
-base_start_position_franka = [0.0, 0.0, 0.0]
+base_start_position_franka = [-0.4457, 0.2988, 0.73]
 base_start_orientation_e_franka = [0.0, 0.0, math.pi / 2]
 joint_start_positions_franka = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675, 0.0, 0.04, 0.04]
 
-base_start_position_ur3 = [0.0, 0.0, 0.0]
+base_table_position_ur3 = [-0.4457, 0.2988, 0.73] #pose original + (-0.4457, 0.2988, 0.73)
+#base_start_position_ur3 = [0.0, 0.0, 0.0]
 base_start_orientation_e_ur3 = [0.0, 0.0, math.pi / 2]
 joint_start_positions_ur3 = [-math.pi, -math.pi/2, -math.pi/2, -math.pi/2, math.pi/2, math.radians(358.22)]
 
@@ -49,13 +50,16 @@ ee_start_position_sawyer = [0.0, 0.6, 0.55]
 ee_start_orientation_e_sawyer = [0.0, math.pi, -math.pi / 2]
 ee_start_position_franka = [0.0, 0.6, 0.55]
 ee_start_orientation_e_franka = [0.0, math.pi, -math.pi / 2]
-ee_start_position_ur3 = [0.11235000001566998, 0.2985999999832018, 0.3136499999769568]
+ee_table_position_ur3 = [-0.33334999998433, 0.5973999999832018, 1.0436499999769566] #pose original + 0.73 em z (altura da mesa)
 ee_start_orientation_e_ur3 = [3.14159265339116, 2.1137534847394844e-10, 0.031066860890601226]
 
 #object_start_position = [0.05, 0.75, 0.1] #sawyer
-object_start_position = [0.05, 0.75, 0.1] #franka
-#object_start_position = [0.1, 0.45, 0.1] #ur3
-object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
+#object_start_position = [0.45, 0.25, 0.73] #franka
+table_start_position = [0.0, 0.0, 0.0] #CG da mesa na origem do sistema
+object_start_position = [0, 0.26, 0.73] #objetos sobre a mesa (0.73 = altura da mesa)
+#object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
+table_start_orientation_e = [0.0, 0.0, math.pi]
+object_start_orientation_e = [0.0, 0.0, math.pi/3]
 
 global_scaling = 0.08
 
@@ -64,13 +68,20 @@ fov, aspect, near_plane, far_plane = 60, 1.0, 0.01, 100
 image_width = 256
 image_height = 256
 
-head_camera_position = [0.0, 1.2, 0.6]
-head_camera_orientation_e = [0.0, 3 / 4.5 * math.pi, -math.pi / 2]
+head_camera_position = [0, 1.12, 0.8]
+#head_camera_position = [0.4, 1.12, 0.8]
+head_camera_orientation_e = [0, 2.0 / 4.5 * math.pi, -math.pi/2]
+wrist_camera_position = [0, 0.26, 1.3]
+#wrist_camera_position = [0.47, 0.15, 1.3]
+wrist_camera_orientation_e = [0, -math.pi, -math.pi/2]
+#wrist_camera_position = [0, -0.6, 0.8]
+#wrist_camera_orientation_e = [0, -2.0 / 4.5 * math.pi, -math.pi/2]
 
-camera_distance = 0.8
-camera_yaw = 225.0
-camera_pitch = -30.0
-camera_target_position = [0.0, 0.6, 0.3]
+camera_distance = 1.0
+camera_yaw = 180.0 #orientação em torno da mesa (eixo z). 360 fica exatamente atras.
+camera_pitch = -30.0 #ângulo de inclinação da câmera. -90 é de cima para baixo. 0 é horizontal.
+camera_target_position = [0, 0.26, 0.73]
+wrist_camera_offset_sawyer = 0.125
 
 wrist_camera_offset_sawyer = 0.125
 

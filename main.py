@@ -93,7 +93,7 @@ if __name__ == "__main__":
     elif args.robot == "franka":
         ee_start_position_prompt = config.ee_start_position_franka
     elif args.robot == "ur3":
-        ee_start_position_prompt = config.ee_start_position_ur3
+        ee_start_position_prompt = config.ee_table_position_ur3
 
     new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(ee_start_position_prompt)).replace("[INSERT TASK]", command)
 
