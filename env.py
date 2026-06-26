@@ -20,14 +20,16 @@ class Environment:
 
         object_start_position = config.object_start_position
         table_start_position = config.table_start_position
+        bowl_start_position = [0.05, 0.26, 0.73]
         object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
         table_start_orientation_q = p.getQuaternionFromEuler(config.table_start_orientation_e)
-        object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        #object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
         # object_model = p.loadURDF("ycb_assets/002_master_chef_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
         object_model = p.loadURDF("ycb_assets/007_mesa.urdf", table_start_position, table_start_orientation_q, useFixedBase=True)
         # object_model = p.loadURDF("ycb_assets/006_mustard_bottle.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
-        # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        object_model = p.loadURDF("ycb_assets/024_bowl.urdf", bowl_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
         if self.mode == "default":
 
@@ -40,6 +42,7 @@ class Environment:
 
         p.stepSimulation()
         time.sleep(config.control_dt)
+        config.passos += 1
 
 
 
@@ -60,6 +63,15 @@ def run_simulation_environment(args, env_connection, logger):
     robot.move(env, robot.ee_start_position, robot.ee_start_orientation_e, gripper_open=True, is_trajectory=False)
 
     env.state_id = p.saveState()
+
+    with open("mapping_joints.txt", "a", encoding="utf-8") as arquivo:
+        arquivo.write(f"Mapeamento de juntas para o {args.robot}:\n")
+        arquivo.write(f"Número de juntas: {p.getNumJoints(robot.id)}\n")
+        arquivo.write(f"{[p.getJointInfo(robot.id, i)[0] for i in range(p.getNumJoints(robot.id))]}\n")
+        for i in range (p.getNumJoints(robot.id)):
+            item = p.getJointInfo(robot.id, i)[1]
+            arquivo.write(f"{item}\n")
+
 
     env_connection_message = OK + "Finished setting up environment!" + ENDC
     env_connection.send([env_connection_message])

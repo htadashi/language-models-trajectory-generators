@@ -211,10 +211,15 @@ class API:
         self.logger.info(PROGRESS + "Adding trajectory points to the environment..." + ENDC)
         self.main_connection.send([ADD_TRAJECTORY_POINTS, trajectory])
 
+        with open("trajectory_2.txt", "a", encoding="utf-8") as arquivo:
+            for item in trajectory:
+                arquivo.write(f"{item}\n")
+
         self.logger.info(PROGRESS + "Executing generated trajectory..." + ENDC)
         self.main_connection.send([EXECUTE_TRAJECTORY, trajectory])
 
         self.trajectory_length += len(trajectory)
+
 
 
 

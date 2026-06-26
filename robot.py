@@ -177,6 +177,18 @@ class Robot:
                 p.setJointMotorControlArray(self.gripper_id, joint_idx, p.POSITION_CONTROL, target_joints, positionGains=np.ones(5))
                 p.setJointMotorControl2(self.gripper_id, self.gripper_motor, p.POSITION_CONTROL, targetPosition=gripper_target_position, force=config.gripper_movement_force_ur3)                
 
+            joint_positions = [p.getJointState(self.id, i)[0] for i in range(p.getNumJoints(self.id))]
+            # params = p.getPhysicsEngineParameters()
+            num_steps = config.passos
+            steps= []
+            steps.append(num_steps * config.control_dt)
+            dados = steps + joint_positions[1:7]
+            with open("joint_positions.txt", "a", encoding="utf-8") as arquivo:
+                # for q in joint_positions:
+                #     arquivo.write(f"{q}\n")
+                # arquivo.write(f"joint_positions: {joint_positions}\n")
+                arquivo.write(f"DADOS: {dados}\n")
+
             env.update()
             self.get_camera_image("head", env, save_camera_image=is_trajectory, rgb_image_path=config.rgb_image_trajectory_path.format(step=self.trajectory_step), depth_image_path=config.depth_image_trajectory_path.format(step=self.trajectory_step))
             if is_trajectory:
