@@ -20,7 +20,9 @@ class Environment:
 
         object_start_position = config.object_start_position
         table_start_position = config.table_start_position
-        bowl_start_position = [0.05, 0.26, 0.73]
+        bowl_start_position = [-0.1, 0.3, 0.73] #[-0.05, 0.3, 0.73]
+        # bowl_start_position = [0.05, 0.26, 0.73]            #setting w/ the craker box
+
         object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
         table_start_orientation_q = p.getQuaternionFromEuler(config.table_start_orientation_e)
         #object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
@@ -28,8 +30,9 @@ class Environment:
         # object_model = p.loadURDF("ycb_assets/002_master_chef_can.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
         object_model = p.loadURDF("ycb_assets/007_mesa.urdf", table_start_position, table_start_orientation_q, useFixedBase=True)
         # object_model = p.loadURDF("ycb_assets/006_mustard_bottle.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
-        object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
-        object_model = p.loadURDF("ycb_assets/024_bowl.urdf", bowl_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        # object_model = p.loadURDF("ycb_assets/013_apple.urdf", bowl_start_position, object_start_orientation_q, useFixedBase=False)
+        # object_model = p.loadURDF("ycb_assets/024_bowl.urdf", [0.02, 0.22, 0.73], object_start_orientation_q, useFixedBase=False)
 
         if self.mode == "default":
 
@@ -38,10 +41,22 @@ class Environment:
 
 
 
-    def update(self):
+    def update(self, id):
 
         p.stepSimulation()
         time.sleep(config.control_dt)
+
+        joint_positions = [p.getJointState(id, i)[0] for i in range(p.getNumJoints(id))]
+        params = p.getPhysicsEngineParameters()['fixedTimeStep']
+        steps= []
+        steps.append(params * config.passos)
+        dados = steps + joint_positions[1:7]
+        with open("joint_positions.txt", "a", encoding="utf-8") as arquivo:
+            # for q in joint_positions:
+            #     arquivo.write(f"{q}\n")
+            # arquivo.write(f"joint_positions: {joint_positions}\n")
+            # arquivo.write(f"step size: {params} Número de steps: {config.passos}\n")
+            arquivo.write(f"{dados}\n")
         config.passos += 1
 
 
@@ -70,7 +85,8 @@ def run_simulation_environment(args, env_connection, logger):
         arquivo.write(f"{[p.getJointInfo(robot.id, i)[0] for i in range(p.getNumJoints(robot.id))]}\n")
         for i in range (p.getNumJoints(robot.id)):
             item = p.getJointInfo(robot.id, i)[1]
-            arquivo.write(f"{item}\n")
+            link = p.getJointInfo(robot.id, i)[12]
+            arquivo.write(f"{item} - {link}\n")
 
 
     env_connection_message = OK + "Finished setting up environment!" + ENDC
@@ -130,7 +146,7 @@ def run_simulation_environment(args, env_connection, logger):
                     robot.move(env, point[:3], np.array(robot.ee_start_orientation_e) + np.array([0, 0, point[3]]), gripper_open=robot.gripper_open, is_trajectory=True)
 
                 for _ in range(100):
-                    env.update()
+                    env.update(robot.id)
 
                 logger.info(OK + "Finished executing generated trajectory!" + ENDC)
 
@@ -172,9 +188,9 @@ def run_simulation_environment(args, env_connection, logger):
                 p.restoreState(env.state_id)
                 
                 for _ in range(100):
-                    env.update()
+                    env.update(robot.id)
 
                 env_connection_message = OK + "Finished resetting environment!" + ENDC
                 env_connection.send([env_connection_message])
 
-        env.update()
+        env.update(robot.id)

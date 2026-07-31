@@ -45,12 +45,16 @@ joint_start_positions_franka = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675, 0.0, 0.04, 
 base_table_position_ur3 = [-0.4457, 0.2988, 0.73] #pose original + (-0.4457, 0.2988, 0.73)
 #base_start_position_ur3 = [0.0, 0.0, 0.0]
 base_start_orientation_e_ur3 = [0.0, 0.0, math.pi / 2]
-joint_start_positions_ur3 = [-math.pi, -math.pi/2, -math.pi/2, -math.pi/2, math.pi/2, math.radians(358.22)]
+# joint_start_positions_ur3 = [-math.pi, -math.pi/2, 0, -math.pi/2, 0 , 0]
+# joint_start_positions_ur3 = [-math.pi, -math.pi/2, -math.pi/2, -math.pi/2, math.pi/2, math.radians(358.22)]
+joint_start_positions_ur3 = [-math.pi, -math.pi/2, -math.pi/2, -math.pi/2, math.pi/2, 0]
 
 ee_start_position_sawyer = [0.0, 0.6, 0.55]
 ee_start_orientation_e_sawyer = [0.0, math.pi, -math.pi / 2]
 ee_start_position_franka = [0.0, 0.6, 0.55]
 ee_start_orientation_e_franka = [0.0, math.pi, -math.pi / 2]
+# ee_table_position_ur3 = [-0.2514499999062882, 0.2987999999999999, 1.4241499999601586]
+# ee_start_orientation_e_ur3 = [-1.5707963270000003, 6.661338147750939e-16, -1.570796326794897]
 ee_table_position_ur3 = [-0.33334999998433, 0.5973999999832018, 1.0436499999769566] #pose original + 0.73 em z (altura da mesa)
 ee_start_orientation_e_ur3 = [3.14159265339116, 2.1137534847394844e-10, 0.031066860890601226]
 

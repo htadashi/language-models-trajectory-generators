@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # Parse args
     parser = argparse.ArgumentParser(description="Main Program.")
-    parser.add_argument("-lm", "--language_model", choices=["gpt-5","gpt-4.1","gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"], default="gpt-5", help="select language model")
+    parser.add_argument("-lm", "--language_model", choices=["gpt-5","gpt-4.1","gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"], default="gpt-4o", help="select language model")
     parser.add_argument("-r", "--robot", choices=["sawyer", "franka", "ur3"], default="ur3", help="select robot")
     parser.add_argument("-m", "--mode", choices=["default", "debug"], default="default", help="select mode to run")
     args = parser.parse_args()
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     elif args.robot == "ur3":
         ee_start_position_prompt = config.ee_table_position_ur3
 
-    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(ee_start_position_prompt)).replace("[INSERT TASK]", command)
+    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(ee_start_position_prompt)).replace("[INSERT TASK]", command).replace("[INSERT ROBOT TYPE]", args.robot)
 
     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
     messages = models.get_chatgpt_output(client, args.language_model, new_prompt, messages, "system")
@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
                     logger.info(PROGRESS + "RETRYING TASK..." + ENDC)
 
-                    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(ee_start_position_prompt)).replace("[INSERT TASK]", command)
+                    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(ee_start_position_prompt)).replace("[INSERT TASK]", command).replace("[INSERT ROBOT TYPE]", args.robot)
                     new_prompt += "\n"
                     new_prompt += TASK_FAILURE_PROMPT.replace("[INSERT TASK SUMMARY]", messages[-1]["content"])
 

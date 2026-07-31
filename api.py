@@ -214,6 +214,10 @@ class API:
         with open("trajectory_2.txt", "a", encoding="utf-8") as arquivo:
             for item in trajectory:
                 arquivo.write(f"{item}\n")
+                
+        with open("plot_ee.txt", "a", encoding="utf-8") as arquivo:
+            for item in trajectory:
+                arquivo.write(f"{item}\n")
 
         self.logger.info(PROGRESS + "Executing generated trajectory..." + ENDC)
         self.main_connection.send([EXECUTE_TRAJECTORY, trajectory])

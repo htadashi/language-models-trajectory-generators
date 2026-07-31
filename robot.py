@@ -45,8 +45,13 @@ class Robot:
                 print(p.getEulerFromQuaternion(ee_orn))  
             # OnRobot RG2 gripper model adapted from University of Osaka
             self.gripper_id = p.loadURDF("onrobot_rg_description/urdf/onrobot_rg2.urdf", config.ee_table_position_ur3, p.getQuaternionFromEuler(config.ee_start_orientation_e_ur3))            
-            self.gripper_motor = config.onrobot_rg2_motor_joint          
+            self.gripper_motor = config.onrobot_rg2_motor_joint
+            self.gripper_object = p.loadURDF("ycb_assets/013_apple.urdf")          
             p.createConstraint(self.id, self.ee_index, self.gripper_id, 0, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, math.pi/2]))  
+            p.createConstraint(self.gripper_id, 0, self.gripper_object, -1, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, math.pi/2]))  
+            # apple_pos0 = p.getLinkState(self.gripper_id, 0, computeForwardKinematics=True)[0]
+            # print(apple_pos0)
+            
 
         if args.robot == "sawyer":
             self.ee_start_position = config.ee_start_position_sawyer
@@ -100,7 +105,7 @@ class Robot:
 
 
     def move(self, env, ee_target_position, ee_target_orientation_e, gripper_open, is_trajectory):
-
+        
         if self.robot == "sawyer":
             gripper1_index = self.gripper_motor
             gripper2_index = self.gripper_motor
@@ -177,19 +182,21 @@ class Robot:
                 p.setJointMotorControlArray(self.gripper_id, joint_idx, p.POSITION_CONTROL, target_joints, positionGains=np.ones(5))
                 p.setJointMotorControl2(self.gripper_id, self.gripper_motor, p.POSITION_CONTROL, targetPosition=gripper_target_position, force=config.gripper_movement_force_ur3)                
 
-            joint_positions = [p.getJointState(self.id, i)[0] for i in range(p.getNumJoints(self.id))]
-            # params = p.getPhysicsEngineParameters()
-            num_steps = config.passos
-            steps= []
-            steps.append(num_steps * config.control_dt)
-            dados = steps + joint_positions[1:7]
-            with open("joint_positions.txt", "a", encoding="utf-8") as arquivo:
-                # for q in joint_positions:
-                #     arquivo.write(f"{q}\n")
-                # arquivo.write(f"joint_positions: {joint_positions}\n")
-                arquivo.write(f"DADOS: {dados}\n")
+            # joint_positions = [p.getJointState(self.id, i)[0] for i in range(p.getNumJoints(self.id))]
+            # params = p.getPhysicsEngineParameters()['fixedTimeStep']
+            # steps= []
+            # steps.append(params * config.passos)
+            # dados = steps + joint_positions[1:7]
+            # with open("joint_positions.txt", "a", encoding="utf-8") as arquivo:
+            #     # for q in joint_positions:
+            #     #     arquivo.write(f"{q}\n")
+            #     # arquivo.write(f"joint_positions: {joint_positions}\n")
+            #         # arquivo.write(f"step size: {params} Número de steps: {config.passos}\n")
+            #     dados[0] = dados[0] - (100 * params)
+            #     arquivo.write(f"{dados}\n")
 
-            env.update()
+            # config.passos += 1
+            env.update(self.id)
             self.get_camera_image("head", env, save_camera_image=is_trajectory, rgb_image_path=config.rgb_image_trajectory_path.format(step=self.trajectory_step), depth_image_path=config.depth_image_trajectory_path.format(step=self.trajectory_step))
             if is_trajectory:
                 self.trajectory_step += 1
