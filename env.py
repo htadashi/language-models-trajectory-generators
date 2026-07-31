@@ -32,7 +32,7 @@ class Environment:
         # object_model = p.loadURDF("ycb_assets/006_mustard_bottle.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
         # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
         # object_model = p.loadURDF("ycb_assets/013_apple.urdf", bowl_start_position, object_start_orientation_q, useFixedBase=False)
-        # object_model = p.loadURDF("ycb_assets/024_bowl.urdf", [0.02, 0.22, 0.73], object_start_orientation_q, useFixedBase=False)
+        object_model = p.loadURDF("ycb_assets/024_bowl.urdf", bowl_start_position, object_start_orientation_q, useFixedBase=False)
 
         if self.mode == "default":
 

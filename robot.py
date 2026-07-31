@@ -46,9 +46,9 @@ class Robot:
             # OnRobot RG2 gripper model adapted from University of Osaka
             self.gripper_id = p.loadURDF("onrobot_rg_description/urdf/onrobot_rg2.urdf", config.ee_table_position_ur3, p.getQuaternionFromEuler(config.ee_start_orientation_e_ur3))            
             self.gripper_motor = config.onrobot_rg2_motor_joint
-            self.gripper_object = p.loadURDF("ycb_assets/013_apple.urdf")          
+            # self.gripper_object = p.loadURDF("ycb_assets/013_apple.urdf")          
             p.createConstraint(self.id, self.ee_index, self.gripper_id, 0, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, math.pi/2]))  
-            p.createConstraint(self.gripper_id, 0, self.gripper_object, -1, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, math.pi/2]))  
+            # p.createConstraint(self.gripper_id, 0, self.gripper_object, -1, jointType=p.JOINT_FIXED, jointAxis=[0, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0], childFrameOrientation=p.getQuaternionFromEuler([0, 0, math.pi/2]))  
             # apple_pos0 = p.getLinkState(self.gripper_id, 0, computeForwardKinematics=True)[0]
             # print(apple_pos0)
             
